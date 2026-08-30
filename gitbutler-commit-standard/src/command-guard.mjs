@@ -71,15 +71,24 @@ function isComposed(command) {
 function classifyGitSegments(command) {
   return splitShellSegments(command)
     .filter((segment) => /^\s*git(?:\s|$)/.test(segment))
-    .map((segment) => classifyCommand(segment.trim().split(/\s+/)))
+    .map((segment) => ({
+      command: segment.trim(),
+      decision: classifyCommand(segment.trim().split(/\s+/)),
+    }))
 }
 
 /** Convert a policy decision into the PreToolUse result shape. */
-function asHookResult(decision) {
+function asHookResult(decision, command) {
   if (decision.decision === 'allow') return { exitCode: 0, stderr: '' }
   return {
     exitCode: 2,
-    stderr: `[gitbutler-commit-standard] ${decision.reason}\nUse: ${decision.remediation}`,
+    stderr: [
+      '[gitbutler-commit-standard] Command blocked.',
+      `Blocked command: ${command}`,
+      'Policy: GitButler-only mutations',
+      `Reason: ${decision.reason}`,
+      `How to proceed: ${decision.remediation}`,
+    ].join('\n'),
   }
 }
 
@@ -88,9 +97,9 @@ export function guardToolPayload(payload) {
   const command = payload?.tool_input?.command ?? payload?.tool_input?.cmd
   if (typeof command !== 'string' || !hasGitExecutable(command)) return { exitCode: 0, stderr: '' }
   if (isComposed(command)) {
-    const blockedDecision = classifyGitSegments(command).find((decision) => decision.decision === 'block')
-    if (!blockedDecision) return { exitCode: 0, stderr: '' }
-    return asHookResult(blockedDecision)
+    const blockedSegment = classifyGitSegments(command).find(({ decision }) => decision.decision === 'block')
+    if (!blockedSegment) return { exitCode: 0, stderr: '' }
+    return asHookResult(blockedSegment.decision, blockedSegment.command)
   }
-  return asHookResult(classifyCommand(command.trim().split(/\s+/)))
+  return asHookResult(classifyCommand(command.trim().split(/\s+/)), command.trim())
 }

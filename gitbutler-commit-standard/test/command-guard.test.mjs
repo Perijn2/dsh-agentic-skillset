@@ -51,7 +51,12 @@ test('allows a direct read-only git log invocation', () => {
 
 /** Verify direct Git mutation output offers a GitButler remedy. */
 test('blocks direct git commit with remediation', () => {
-  const result = guardToolPayload({ tool_input: { command: 'git commit -m "fix: x"' } })
+  const command = 'git commit -m "fix: x"'
+  const result = guardToolPayload({ tool_input: { command } })
   assert.equal(result.exitCode, 2)
+  assert.match(result.stderr, /Blocked command: git commit -m "fix: x"/)
+  assert.match(result.stderr, /Policy: GitButler-only mutations/)
+  assert.match(result.stderr, /Reason: Raw git commit is not permitted/)
+  assert.match(result.stderr, /How to proceed: but commit/)
   assert.match(result.stderr, /but commit -b/)
 })

@@ -48,10 +48,20 @@ test('commit-msg wrapper runs commitlint against the supplied message file', asy
 
   try {
     await installRepositoryHooks({ hooksDirectory, packageRoot })
+    let hookError
     assert.throws(
-      () => execFileSync('bash', [join(hooksDirectory, 'commit-msg'), invalidMessage], { cwd: repository, stdio: 'pipe' }),
+      () => {
+        try {
+          execFileSync('bash', [join(hooksDirectory, 'commit-msg'), invalidMessage], { cwd: repository, stdio: 'pipe' })
+        } catch (error) {
+          hookError = error
+          throw error
+        }
+      },
       /Command failed/,
     )
+    assert.match(hookError.stderr.toString(), /Commit message blocked by Conventional Commit policy\./)
+    assert.match(hookError.stderr.toString(), /How to proceed: use <type>\(optional-scope\): <description>/)
     assert.doesNotThrow(() => execFileSync('bash', [join(hooksDirectory, 'commit-msg'), validMessage], { cwd: repository, stdio: 'pipe' }))
   } finally {
     await rm(repository, { recursive: true, force: true })

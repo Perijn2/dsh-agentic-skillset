@@ -42,6 +42,12 @@ test('lintMessage resolves commitlint from this installed package', async () => 
 test('lintMessage throws commitlint diagnostics on failure', async () => {
   await assert.rejects(
     () => lintMessage('/tmp/MSG', { profile: 'conventional' }, async () => ({ code: 1, stderr: 'subject may not be empty' })),
-    /subject may not be empty/,
+    (error) => {
+      assert.match(error.message, /Commit message blocked by Conventional Commit policy\./)
+      assert.match(error.message, /Reason: subject may not be empty/)
+      assert.match(error.message, /How to proceed: use <type>\(optional-scope\): <description>/)
+      assert.match(error.message, /Do not use --no-verify/)
+      return true
+    },
   )
 })
