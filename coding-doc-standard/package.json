@@ -1,0 +1,58 @@
+{
+  "name": "coding-doc-standard",
+  "version": "0.1.0",
+  "description": "Universal, language-agnostic coding documentation standard for the DeepSeek Harness. Ships a machine-wide hook (via the Claude Code hooks bridge) that blocks writes/edits whose code lacks the required documentation, plus a skill that carries the standard to every agent.",
+  "type": "module",
+  "main": "register-hooks.mjs",
+  "exports": {
+    ".": {
+      "default": "./register-hooks.mjs"
+    },
+    "./hooks.json": "./hooks.json",
+    "./checker": "./src/checker.py",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "SKILL.md",
+    "register-hooks.mjs",
+    "src/checker.py",
+    "hooks.json",
+    "run-check.sh",
+    "README.md",
+    "config.json",
+    "scripts/install.mjs",
+    "scripts/yaml-lite.mjs",
+    "client.js"
+  ],
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-settings-plugins"
+      ]
+    }
+  },
+  "bin": {
+    "coding-doc-standard-check": "./run-check.sh"
+  },
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "validate": "node scripts/test.mjs",
+    "install:harness": "node scripts/install.mjs"
+  },
+  "keywords": [
+    "documentation",
+    "docstring",
+    "coding-standard",
+    "deepseek",
+    "harness",
+    "hooks"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

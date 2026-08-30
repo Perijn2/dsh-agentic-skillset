@@ -1,0 +1,52 @@
+{
+  "enabled": true,
+  "includeExtensions": [
+    ".py",
+    ".ts",
+    ".js",
+    ".mjs",
+    ".cjs",
+    ".rs",
+    ".c",
+    ".h",
+    ".cpp",
+    ".cc",
+    ".hpp",
+    ".cxx",
+    ".hxx"
+  ],
+  "excludeExtensions": [],
+  "skipSegments": [
+    ".git",
+    "node_modules",
+    "vendor",
+    "target",
+    "dist",
+    "build",
+    "__pycache__"
+  ],
+  "minFileSize": 50,
+  "placeholderAuthors": [
+    "",
+    "todo",
+    "tbd",
+    "fixme",
+    "unknown",
+    "n/a",
+    "none",
+    "agent",
+    "ai",
+    "assistant",
+    "claude",
+    "copilot",
+    "you",
+    "name",
+    "your",
+    "placeholder"
+  ],
+  "timeoutMs": 10000,
+  "python": true,
+  "typescriptJavascript": true,
+  "rust": true,
+  "cCpp": true
+}
