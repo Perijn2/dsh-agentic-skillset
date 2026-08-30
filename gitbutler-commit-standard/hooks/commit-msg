@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Managed commit-msg entrypoint for GitButler Commit Standard.
+set -u
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || true)"
+NATIVE_HOOK="${GIT_DIR}/hooks/commit-msg"
+if [ -n "${GIT_DIR}" ] && [ -x "${NATIVE_HOOK}" ] && [ "${NATIVE_HOOK}" != "${BASH_SOURCE[0]}" ]; then
+  "${NATIVE_HOOK}" "$1" || exit $?
+fi
+exec node "${ROOT}/scripts/commit-msg.mjs" "$1"

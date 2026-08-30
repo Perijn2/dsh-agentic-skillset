@@ -1,0 +1,14 @@
+{
+  "PreToolUse": [
+    {
+      "matcher": "bash|shell|terminal|exec",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/run-command-guard.sh",
+          "timeout": 10
+        }
+      ]
+    }
+  ]
+}

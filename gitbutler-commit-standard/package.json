@@ -1,0 +1,53 @@
+{
+  "name": "gitbutler-commit-standard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DeepSeek Harness GitButler and Conventional Commit enforcement.",
+  "main": "register-hooks.mjs",
+  "exports": {
+    ".": {
+      "default": "./register-hooks.mjs"
+    },
+    "./hooks.json": "./hooks.json",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "README.md",
+    "SKILL.md",
+    "client.js",
+    "config.json",
+    "commitlint.config.cjs",
+    "hooks.json",
+    "hooks/",
+    "register-hooks.mjs",
+    "references/",
+    "run-command-guard.sh",
+    "scripts/",
+    "src/"
+  ],
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": ["@deepseek-ai/dsh-client-runtime", "@deepseek-ai/dsh-client-ui-settings", "@deepseek-ai/dsh-client-ui-settings-plugins"]
+    }
+  },
+  "scripts": {
+    "test": "node --test",
+    "validate": "node --test",
+    "install:harness": "node scripts/install.mjs",
+    "install:repository-hooks": "node scripts/install-repository-hooks.mjs",
+    "uninstall:harness": "node scripts/uninstall.mjs"
+  },
+  "bin": {
+    "gitbutler-commit-standard-hooks": "./scripts/install-repository-hooks.mjs"
+  },
+  "dependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
