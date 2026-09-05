@@ -30,3 +30,11 @@ test('introduces the standard before its enforcement controls', async () => {
   assert.match(client, /GitButler Commit Standard/)
   assert.match(client, /routes Git mutations through the but CLI/)
 })
+
+test('marks only its Settings navigation item for a custom icon and cleans it up', async () => {
+  const client = await readFile(clientPath, 'utf8')
+
+  assert.match(client, /data-gitbutler-commit-standard-settings-nav/)
+  assert.match(client, /removeAttribute\(NAV_MARKER\)/)
+  assert.match(client, /\[data-gitbutler-commit-standard-settings-nav\]/)
+})

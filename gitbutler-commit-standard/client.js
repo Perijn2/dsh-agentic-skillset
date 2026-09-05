@@ -16,6 +16,8 @@ window.__ModuleLoader__.load({
   factory: (require) => {
     const React = require('react')
     const module = { exports: {} }
+    const NAV_MARKER = 'data-gitbutler-commit-standard-settings-nav'
+    const SETTINGS_LABEL = 'GitButler Commit Standard'
     const settingsCss = `
 .gcs-settings-section { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 760px; }
 .gcs-settings-header { display: flex; flex-direction: column; gap: 4px; padding: 0 2px; }
@@ -38,6 +40,8 @@ window.__ModuleLoader__.load({
 .gcs-switch-input:checked + .gcs-switch-track .gcs-switch-thumb { transform: translate(16px); background: var(--dsw-alias-bg-layer-3); }
 .gcs-switch-input:focus-visible + .gcs-switch-track { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 2px; }
 .gcs-switch-input:disabled + .gcs-switch-track { cursor: not-allowed; opacity: .55; }
+[data-gitbutler-commit-standard-settings-nav] > svg:first-child { display: none; }
+[data-gitbutler-commit-standard-settings-nav]::before { content: ''; flex: none; width: 16px; height: 16px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='18' cy='18' r='3'/%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3Cpath d='M6 9v6a3 3 0 0 0 3 3h6'/%3E%3Cline x1='6' x2='6' y1='12' y2='9'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='18' cy='18' r='3'/%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3Cpath d='M6 9v6a3 3 0 0 0 3 3h6'/%3E%3Cline x1='6' x2='6' y1='12' y2='9'/%3E%3C/svg%3E") center / contain no-repeat; }
 @media (prefers-reduced-motion: reduce) { .gcs-switch-track, .gcs-switch-thumb { transition: none; } }
 `
 
@@ -47,6 +51,25 @@ window.__ModuleLoader__.load({
       style.dataset.pluginCss = 'gitbutler-commit-standard/settings'
       style.textContent = settingsCss
       document.head.appendChild(style)
+    }
+
+    function registerSettingsNavIcon() {
+      let disposed = false
+      const sync = () => {
+        if (disposed) return
+        for (const button of document.querySelectorAll('[role="dialog"] nav button')) {
+          if (button.textContent?.trim() === SETTINGS_LABEL) button.setAttribute(NAV_MARKER, '')
+          else button.removeAttribute(NAV_MARKER)
+        }
+      }
+      sync()
+      const observer = new MutationObserver(sync)
+      observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+      return () => {
+        disposed = true
+        observer.disconnect()
+        document.querySelectorAll(`[${NAV_MARKER}]`).forEach((element) => element.removeAttribute(NAV_MARKER))
+      }
     }
 
     function Switch({ checked, disabled, label, onChange }) {
@@ -109,11 +132,12 @@ window.__ModuleLoader__.load({
     module.exports.inject = ['slots', 'settingsScope']
     module.exports.apply = (ctx) => {
       const scope = ctx.settingsScope.bind({ namespace: 'gitbutler-commit-standard' })
+      ctx.effect(() => registerSettingsNavIcon(), 'gitbutler-commit-standard: settings navigation icon')
       ctx.slots.inject('settings.section', () => ctx.slots.register({
         name: 'settings.section',
         id: 'gitbutler-commit-standard',
         order: 25,
-        label: () => 'GitButler Commit Standard',
+        label: () => SETTINGS_LABEL,
         inject: () => ({ scope }),
       }, GitButlerSettingsSection))
     }
