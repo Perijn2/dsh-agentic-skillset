@@ -84,6 +84,30 @@ if [ -z "${file_path}" ] || [ "${#CANDIDATE_FIELDS[@]}" -lt 2 ]; then
     exit 2
 fi
 
+# Black receives the in-memory candidate, not the stale on-disk file. The
+# installer provisions this exact version under the package root so a host-wide
+# Black installation cannot make enforcement depend on an unpinned version.
+if [[ "${file_path}" == *.py ]]; then
+    BLACK_VERSION="25.12.0"
+    BLACK_HOME="${HERE}/.tools/black-${BLACK_VERSION}"
+    if [ ! -d "${BLACK_HOME}/black" ]; then
+        echo "[doc-standard] Pinned Black ${BLACK_VERSION} is unavailable at ${BLACK_HOME}. Run node scripts/install.mjs to provision it." >&2
+        exit 1
+    fi
+
+    python3 -c 'import base64, sys; sys.stdout.buffer.write(base64.b64decode(sys.argv[1]))' "${candidate_b64}" |
+        PYTHONPATH="${BLACK_HOME}${PYTHONPATH:+:${PYTHONPATH}}" python3 -m black --check --stdin-filename "${file_path}" -
+    black_status="${PIPESTATUS[1]}"
+    if [ "${black_status}" -eq 1 ]; then
+        echo "[doc-standard] Python code must be formatted with Black ${BLACK_VERSION}." >&2
+        exit 2
+    fi
+    if [ "${black_status}" -ne 0 ]; then
+        echo "[doc-standard] Pinned Black ${BLACK_VERSION} failed (exit ${black_status})." >&2
+        exit 1
+    fi
+fi
+
 checker_args=("${CHECKER}" "${file_path}")
 if [ -n "${CONFIG_PATH}" ]; then
     checker_args+=("${CONFIG_PATH}")

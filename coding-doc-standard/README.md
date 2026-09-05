@@ -17,6 +17,8 @@ changes the target file:
 - **File / module header** must exist with `Author`, `Summary`, and an advanced `Usage` guide.
 - **Author** must be a real, user-confirmed name - never a guess or placeholder.
 - **Unit doc** must exist on every public unit (function, class, type, etc.).
+- **Python formatting** must pass the pending content through pinned
+  `black==25.12.0`; code that Black would reformat is blocked.
 
 A non-compliant file is **BLOCKED** (the tool call is rejected) with the
 specific violations printed to stderr, so the agent must either fix the docs or
@@ -153,6 +155,8 @@ The install script:
    pointing at this package's `register-hooks.mjs` and `hooks.json`.
 3. Replaces any legacy direct `hooks-claude-code` registration so the bridge
    mounts **exactly once**.
+4. Provisions the hook-local, pinned `black==25.12.0` dependency used to check
+   pending Python content.
 
 **After installing, restart the harness server** so the plugin mounts (config is
 read at boot).

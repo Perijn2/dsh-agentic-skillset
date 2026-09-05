@@ -455,8 +455,13 @@ checkHook("hook: blocks non-compliant write", {
 checkHook("hook: allows compliant write", {
   tool_name: "write",
   tool_input: { file_path: join(tmp, "hook-good.py"), content:
-`"""Module.\n\nAuthor: Jane Doe\nIncludes:\n    foo: Does work.\nUsage:\n    foo()\n"""\n\ndef foo():\n    """Do work."""\n` },
+`"""Module.\n\nAuthor: Jane Doe\nIncludes:\n    foo: Does work.\nUsage:\n    foo()\n"""\n\n\ndef foo():\n    """Do work."""\n` },
 }, 0)
+checkHook("hook: blocks Python content that Black would reformat", {
+  tool_name: "write",
+  tool_input: { file_path: join(tmp, "hook-unformatted.py"), content:
+`"""Module.\n\nAuthor: Jane Doe\nIncludes:\n    foo: Does work.\nUsage:\n    foo()\n"""\n\ndef foo( ):\n    """Do work."""\n` },
+}, 2)
 
 const editablePath = join(tmp, "editable.py")
 writeFileSync(editablePath,
