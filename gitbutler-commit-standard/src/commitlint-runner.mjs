@@ -25,13 +25,20 @@ function formatCommitlintFailure(diagnostic) {
   return [
     'Commit message blocked by Conventional Commit policy.',
     `Reason: ${reason}`,
-    'How to proceed: use <type>(optional-scope): <description>',
-    'Example: feat(parser): add token validation',
+    'How to proceed: use <type>(optional-scope): <summary>, then a blank line and a description.',
+    'Example: feat(parser): add token validation\n\nExplain the validation added by this change.',
     'Do not use --no-verify; correct the message and retry.',
   ].join('\n')
 }
 
-/** Run commitlint and throw its diagnostics when it rejects the message. */
+/**
+ * Run commitlint and throw its diagnostics when it rejects the message.
+ *
+ * @param messagePath - Path to Git's commit-message file.
+ * @param policy - Commit-message profile to validate.
+ * @param run - Process runner for commitlint.
+ * @returns Resolves after commitlint accepts the message.
+ */
 export async function lintMessage(messagePath, policy, run = runProcess) {
   if (policy.profile !== 'conventional') throw new Error(`Unsupported commitlint profile: ${policy.profile}`)
   const result = await run([

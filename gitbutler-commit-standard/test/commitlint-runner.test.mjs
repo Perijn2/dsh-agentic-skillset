@@ -45,7 +45,7 @@ test('lintMessage throws commitlint diagnostics on failure', async () => {
     (error) => {
       assert.match(error.message, /Commit message blocked by Conventional Commit policy\./)
       assert.match(error.message, /Reason: subject may not be empty/)
-      assert.match(error.message, /How to proceed: use <type>\(optional-scope\): <description>/)
+      assert.match(error.message, /How to proceed: use <type>\(optional-scope\): <summary>, then a blank line and a description\./)
       assert.match(error.message, /Do not use --no-verify/)
       return true
     },

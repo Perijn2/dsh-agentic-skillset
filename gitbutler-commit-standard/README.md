@@ -13,7 +13,8 @@ and Conventional Commit messages.
 - GitButler owns each repository's `pre-commit` hook. The standard installs a
   `pre-commit-user` wrapper so GitButler can call it, and a native `commit-msg`
   wrapper that preserves any prior hook before running commitlint using
-  `@commitlint/config-conventional`.
+  `@commitlint/config-conventional`. Commit messages must also include a
+  non-empty body describing the change.
 - The installer verifies `but`; when absent, it uses GitButler's official
   installer only with `--yes-install-gitbutler` confirmation.
 

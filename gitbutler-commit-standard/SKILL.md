@@ -24,8 +24,9 @@ reference at `references/gitbutler/SKILL.md`.
   add <repository-url> <path>`.
 - Never use `--no-verify`.
 - Never use `but commit --no-hooks`; it bypasses the GitButler hook chain.
-- Use a Conventional Commit message. Examples: `feat: add policy settings`,
-  `fix(hooks): preserve native commit-msg validation`, `docs: explain setup`.
+- Use a Conventional Commit message with a non-empty description body. Supply a
+  Conventional Commit header, then a blank line, then a meaningful description.
+  For example: `but commit <branch> -m $'feat: add policy settings\n\nExplain the policy settings introduced by this change.'`.
 - If GitButler has not initialized the repository, ask the user before running
   `but setup` when target-branch selection is not explicit.
 - After `git init` in a new repository, before making changes or committing,
@@ -46,7 +47,7 @@ read-only `git config --get` or `git config --list` forms.
 1. Inspect the working state with `but status` or permitted Git inspection.
 2. Create or apply work with the command forms in `references/gitbutler/SKILL.md`.
 3. Review changes with `but diff`.
-4. Commit with `but commit <branch> -m "type: concise description"`.
+4. Commit with `but commit <branch> -m $'type: concise summary\n\nMeaningful description of the change.'`.
 5. Update and publish with `but pull` and `but push <branch>`.
 
 ## How it works

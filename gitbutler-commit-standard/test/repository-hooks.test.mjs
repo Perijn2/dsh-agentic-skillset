@@ -3,6 +3,10 @@
  * @author Perijn
  * Tests installation of GitButler-native repository hook wrappers.
  *
+ * @remarks
+ * Includes:
+ *   - repository hook tests: verify installation and commit-message validation.
+ *
  * Usage:
  *   node --test test/repository-hooks.test.mjs
  */
@@ -42,9 +46,11 @@ test('commit-msg wrapper runs commitlint against the supplied message file', asy
   const hooksDirectory = join(repository, '.git', 'hooks')
   const packageRoot = fileURLToPath(new URL('..', import.meta.url))
   const invalidMessage = join(hooksDirectory, 'invalid-message')
+  const missingDescriptionMessage = join(hooksDirectory, 'missing-description-message')
   const validMessage = join(hooksDirectory, 'valid-message')
   await writeFile(invalidMessage, 'this is not a conventional commit\n')
-  await writeFile(validMessage, 'feat: validate the native commit hook\n')
+  await writeFile(missingDescriptionMessage, 'feat: validate the native commit hook\n')
+  await writeFile(validMessage, 'feat: validate the native commit hook\n\nVerify that repository hooks reject commits without descriptions.\n')
 
   try {
     await installRepositoryHooks({ hooksDirectory, packageRoot })
@@ -61,7 +67,20 @@ test('commit-msg wrapper runs commitlint against the supplied message file', asy
       /Command failed/,
     )
     assert.match(hookError.stderr.toString(), /Commit message blocked by Conventional Commit policy\./)
-    assert.match(hookError.stderr.toString(), /How to proceed: use <type>\(optional-scope\): <description>/)
+    assert.match(hookError.stderr.toString(), /How to proceed: use <type>\(optional-scope\): <summary>, then a blank line and a description\./)
+    let missingDescriptionError
+    assert.throws(
+      () => {
+        try {
+          execFileSync('bash', [join(hooksDirectory, 'commit-msg'), missingDescriptionMessage], { cwd: repository, stdio: 'pipe' })
+        } catch (error) {
+          missingDescriptionError = error
+          throw error
+        }
+      },
+      /Command failed/,
+    )
+    assert.match(missingDescriptionError.stderr.toString(), /body may not be empty/)
     assert.doesNotThrow(() => execFileSync('bash', [join(hooksDirectory, 'commit-msg'), validMessage], { cwd: repository, stdio: 'pipe' }))
   } finally {
     await rm(repository, { recursive: true, force: true })
