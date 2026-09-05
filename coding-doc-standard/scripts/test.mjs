@@ -387,7 +387,7 @@ check("py: stub (small, no units)", "x = 1\n", ".py", 0)
 // New test cases for config-driven policy
 // ---------------------------------------------------------------------------
 
-// (1) checker with a config file that excludes an extension (file with that extension → exit 0)
+// (1) checker with a config file that excludes an extension (file with that extension -> exit 0)
 const configExcludeExt = join(tmp, "config-exclude-ext.json")
 writeFileSync(configExcludeExt, JSON.stringify({
   enabled: true,
@@ -400,7 +400,7 @@ writeFileSync(configExcludeExt, JSON.stringify({
 }))
 check("config: exclude extension blocks .py", "def foo(x):\n    return x\n", ".py", 0, configExcludeExt)
 
-// (2) checker with enabled:false (non-compliant file → exit 0)
+// (2) checker with enabled:false (non-compliant file -> exit 0)
 const configDisabled = join(tmp, "config-disabled.json")
 writeFileSync(configDisabled, JSON.stringify({
   enabled: false,
@@ -413,7 +413,7 @@ writeFileSync(configDisabled, JSON.stringify({
 }))
 check("config: enabled=false allows non-compliant file", "def foo(x):\n    return x\n", ".py", 0, configDisabled)
 
-// (3) checker with a custom skipSegment (file under that segment → exit 0)
+// (3) checker with a custom skipSegment (file under that segment -> exit 0)
 const configCustomSkip = join(tmp, "config-custom-skip.json")
 writeFileSync(configCustomSkip, JSON.stringify({
   enabled: true,
@@ -426,7 +426,7 @@ writeFileSync(configCustomSkip, JSON.stringify({
 }))
 checkInSubdir("config: custom skipSegment", "custom_skip_dir/foo.py", "def foo(x):\n    return x\n", ".py", 0, configCustomSkip)
 
-// (4) checker with a malformed config file (falls back to defaults → non-compliant file still exit 2)
+// (4) checker with a malformed config file (falls back to defaults -> non-compliant file still exit 2)
 const configMalformed = join(tmp, "config-malformed.json")
 writeFileSync(configMalformed, "{ this is not valid json !!!")
 check("config: malformed config falls back to defaults", "def foo(x):\n    return x\n", ".py", 2, configMalformed)

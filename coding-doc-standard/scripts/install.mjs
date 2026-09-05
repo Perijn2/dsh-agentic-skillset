@@ -18,7 +18,7 @@
 // Adds (or updates) a single cordis plugin row whose `name` is this package's
 // `register-hooks.mjs`. When the harness boots, the cordis loader mounts that
 // plugin, which wires the Claude Code hooks bridge to this package's
-// `hooks.json` — so every write/edit tool call is checked against the standard.
+// `hooks.json` - so every write/edit tool call is checked against the standard.
 //
 // Usage:
 //   node scripts/install.mjs [--config <cordis.patch.yml path>] [--dry-run]
@@ -71,7 +71,7 @@ const configPath = argValue('--config') ||
 const required = [ENTRY, HOOKS_JSON, CHECKER, WRAPPER, SKILL_MD, ...SKILL_REFERENCES]
 const missing = required.filter((p) => !existsSync(p))
 if (missing.length) {
-  console.error(`coding-doc-standard: package is incomplete — missing:\n  ${missing.join('\n  ')}`)
+  console.error(`coding-doc-standard: package is incomplete - missing:\n  ${missing.join('\n  ')}`)
   process.exit(1)
 }
 
@@ -89,7 +89,7 @@ if (existsSync(configPath)) {
     process.exit(1)
   }
 } else {
-  console.log(`coding-doc-standard: ${configPath} not found — will create a new patch layer`)
+  console.log(`coding-doc-standard: ${configPath} not found - will create a new patch layer`)
   docText = ''
 }
 
@@ -179,6 +179,6 @@ writeFileSync(configPath, next)
 console.log(`coding-doc-standard: wrote ${configPath}`)
 
 console.log(
-  '\ncoding-doc-standard: next step — RESTART the harness server so the plugin mounts.',
+  '\ncoding-doc-standard: next step - RESTART the harness server so the plugin mounts.',
 )
 console.log('  (stop the running server and relaunch; config is read at boot)')

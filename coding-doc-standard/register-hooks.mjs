@@ -1,5 +1,5 @@
 /**
- * coding-doc-standard — cordis plugin.
+ * coding-doc-standard - cordis plugin.
  *
  * Wires the Claude Code hooks bridge (`@deepseek-ai/dsh-hooks-claude-code`) to
  * this package's doc-standard hook config, so that on EVERY `write`/`edit` tool
@@ -7,7 +7,7 @@
  * non-compliant file is BLOCKED (exit 2 -> model feedback) rather than allowed.
  *
  * Also registers a settings namespace (`coding-doc-standard`) with the harness
- * settings service, so the policy can be driven from Settings → Plugins. The
+ * settings service, so the policy can be driven from Settings -> Plugins. The
  * resolved section is written to `<pluginRoot>/config.json` on every commit;
  * the checker reads that file on each invocation.
  *
@@ -29,7 +29,7 @@ export const name = 'coding-doc-standard'
 export const inject = ['shell']
 
 // ---------------------------------------------------------------------------
-// Defaults — mirror src/checker.py so JS and Python stay in sync.
+// Defaults - mirror src/checker.py so JS and Python stay in sync.
 // ---------------------------------------------------------------------------
 
 const DEFAULT_INCLUDE_EXTENSIONS = [
@@ -129,7 +129,7 @@ function writeConfigFile(pluginRoot, config) {
     renameSync(tmp, p)
   } catch (e) {
     // Best-effort: don't crash registration on a write failure.
-    console.warn(`coding-doc-standard: warning — could not write config to ${p}: ${e.message}`)
+    console.warn(`coding-doc-standard: warning - could not write config to ${p}: ${e.message}`)
   }
 }
 
@@ -141,7 +141,7 @@ function writeConfigFile(pluginRoot, config) {
  * Resolve the Claude Code hooks bridge. Priority, in order:
  *   1. an explicit `DSH_HOOKS_CLAUDE_CODE_PATH` env var (wins when set),
  *   2. the bridge as a workspace package of the harness, resolved relative to
- *      the process cwd — i.e. the directory DSH is launched from, which is the
+ *      the process cwd - i.e. the directory DSH is launched from, which is the
  *      harness checkout (`~/ai/deepseek-harness`).
  *
  * The candidate is an ABSOLUTE path, so the cordis loader's import override
@@ -176,7 +176,7 @@ async function resolveBridge() {
 }
 
 // ---------------------------------------------------------------------------
-// Settings resolution (optional — continue without it when unavailable)
+// Settings resolution (optional - continue without it when unavailable)
 // ---------------------------------------------------------------------------
 
 /**
@@ -186,7 +186,7 @@ async function resolveBridge() {
  *      (`<cwd>/packages/settings/settings/lib/index.js`).
  *
  * Returns `{ mod, installSettingsSection, settingsNamespace }` or null when
- * resolution fails — the plugin keeps working with defaults in that case.
+ * resolution fails - the plugin keeps working with defaults in that case.
  */
 async function resolveSettings() {
   const candidates = []
@@ -236,7 +236,7 @@ export async function apply(ctx, config = {}) {
   const pluginRoot = resolve(fileURLToPath(entryUrl), config.pluginRoot ?? '.')
   const configPath = resolve(pluginRoot, config.configPath ?? 'hooks.json')
 
-  // Resolve the bridge first — this is the hard dependency.
+  // Resolve the bridge first - this is the hard dependency.
   const { mod, name: bridgeName } = await resolveBridge()
   const applyBridge = mod.apply
 
@@ -289,7 +289,7 @@ export async function apply(ctx, config = {}) {
 
     ctx.logger.info('coding-doc-standard: settings section installed')
   } else {
-    ctx.logger.warn('coding-doc-standard: settings service unavailable — running with default policy')
+    ctx.logger.warn('coding-doc-standard: settings service unavailable - running with default policy')
   }
 
   // Best-effort: sync hooks.json timeoutMs with config.json at boot.
@@ -305,7 +305,7 @@ export async function apply(ctx, config = {}) {
       ctx.logger.info(`coding-doc-standard: synced hooks.json timeout to ${currentConfig.timeoutMs}ms`)
     }
   } catch (e) {
-    ctx.logger.warn(`coding-doc-standard: warning — could not sync hooks.json timeout: ${e.message}`)
+    ctx.logger.warn(`coding-doc-standard: warning - could not sync hooks.json timeout: ${e.message}`)
   }
 
   // Delegate to the bridge. It reads `configPath` once at load and registers the
