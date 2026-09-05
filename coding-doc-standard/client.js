@@ -17,6 +17,8 @@ window.__ModuleLoader__.load({
     const exports = module.exports
     const React = require('react')
     const NS = 'coding-doc-standard'
+    const NAV_MARKER = 'data-coding-doc-standard-settings-nav'
+    const SETTINGS_LABEL = 'Coding Documentation Standard'
     const fields = [
       ['enabled', 'Enforce documentation checks', 'Blocks non-compliant code changes before they are written.'],
       ['python', 'Python', 'Apply the standard to Python files.'],
@@ -46,6 +48,8 @@ window.__ModuleLoader__.load({
 .cds-switch-input:checked + .cds-switch-track .cds-switch-thumb { transform: translate(16px); background: var(--dsw-alias-bg-layer-3); }
 .cds-switch-input:focus-visible + .cds-switch-track { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 2px; }
 .cds-switch-input:disabled + .cds-switch-track { cursor: not-allowed; opacity: .55; }
+[data-coding-doc-standard-settings-nav] > svg:first-child { display: none; }
+[data-coding-doc-standard-settings-nav]::before { content: ''; flex: none; width: 16px; height: 16px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cpath d='M8 13h8'/%3E%3Cpath d='M8 17h8'/%3E%3Cpath d='M8 9h2'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cpath d='M8 13h8'/%3E%3Cpath d='M8 17h8'/%3E%3Cpath d='M8 9h2'/%3E%3C/svg%3E") center / contain no-repeat; }
 @media (prefers-reduced-motion: reduce) { .cds-switch-track, .cds-switch-thumb { transition: none; } }
 `
 
@@ -55,6 +59,25 @@ window.__ModuleLoader__.load({
       style.dataset.pluginCss = 'coding-doc-standard/settings'
       style.textContent = settingsCss
       document.head.appendChild(style)
+    }
+
+    function registerSettingsNavIcon() {
+      let disposed = false
+      const sync = () => {
+        if (disposed) return
+        for (const button of document.querySelectorAll('[role="dialog"] nav button')) {
+          if (button.textContent?.trim() === SETTINGS_LABEL) button.setAttribute(NAV_MARKER, '')
+          else button.removeAttribute(NAV_MARKER)
+        }
+      }
+      sync()
+      const observer = new MutationObserver(sync)
+      observer.observe(document.body, { childList: true, subtree: true, characterData: true })
+      return () => {
+        disposed = true
+        observer.disconnect()
+        document.querySelectorAll(`[${NAV_MARKER}]`).forEach((element) => element.removeAttribute(NAV_MARKER))
+      }
     }
 
     function Switch({ checked, disabled, label, onChange }) {
@@ -127,11 +150,12 @@ window.__ModuleLoader__.load({
     exports.inject = ['slots', 'settingsScope']
     exports.apply = (ctx) => {
       const scope = ctx.settingsScope.bind({ namespace: NS })
+      ctx.effect(() => registerSettingsNavIcon(), `${NS}: settings navigation icon`)
       ctx.slots.inject('settings.section', () => ctx.slots.register({
         name: 'settings.section',
         id: NS,
         order: 24,
-        label: () => 'Coding Documentation Standard',
+        label: () => SETTINGS_LABEL,
         inject: () => ({ scope }),
       }, DocumentationStandardSettings))
     }

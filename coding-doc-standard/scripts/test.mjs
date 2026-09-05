@@ -40,6 +40,9 @@ assertClientIncludes('settings UI: registers a sidebar section', "settings.secti
 assertClientExcludes('settings UI: does not use plugin configuration cards', "settings.plugin.item")
 assertClientIncludes('settings UI: has the grouped settings styling', "cds-settings-group")
 assertClientIncludes('settings UI: explains the documentation policy', "Enforces documentation requirements before code changes are written.")
+assertClientIncludes('settings UI: marks only its settings navigation item for a custom icon', 'data-coding-doc-standard-settings-nav')
+assertClientIncludes('settings UI: removes the navigation marker during disposal', 'removeAttribute(NAV_MARKER)')
+assertClientIncludes('settings UI: replaces the fallback navigation icon through scoped CSS', '[data-coding-doc-standard-settings-nav]')
 
 function check(name, content, ext, expected, configPath) {
   const path = join(tmp, `fixture${ext}`)
