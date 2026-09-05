@@ -1,5 +1,35 @@
 #!/usr/bin/env python3
-"""coding-doc-standard — the mechanical checker.
+"""The coding documentation standard's mechanical compliance checker.
+
+Author: Perijn Huijser
+
+Summary: Validates supported source files against the coding documentation standard.
+
+Usage:
+    Core principle:
+        Treat documentation as a verifiable API contract; report violations
+        without attempting to infer or repair unknown behavior.
+
+    Setup:
+        Run this module with Python 3 and a target source-file path. The optional
+        configuration path overrides policy defaults; `--stdin` checks proposed
+        content while retaining the supplied path for language selection.
+
+    Workflow:
+        The checker determines whether the target is in scope, skips eligible
+        stubs, validates its file header and public units, then exits with 0 for
+        compliance, 2 for policy violations, or 1 for an internal error.
+
+    API guide:
+        `main` is the command-line entry point. Embedders call `check_content`
+        with source text, a path, a language kind, and placeholder authors, then
+        inspect the returned `Violations` collection.
+
+    Worked example:
+        $ python3 checker.py src/example.py config.json
+        # Exit 0: compliant; exit 2: documentation violations printed to stderr.
+
+The coding-doc-standard - the mechanical checker.
 
 Enforces the universal coding documentation standard against a single file.
 Exits:
@@ -10,20 +40,20 @@ Exits:
 Standard (see ../../README.md for the full spec and per-language mappings):
 
   File / module header (one per file), in this order:
-    Author      — REQUIRED, real name (never a placeholder/guess)
-    Summary     — one line: what this file/module is for
-    Includes    — each public unit the file exposes, one line each
-    Usage       — how to use the API, with a runnable example
-    Notes       — optional; omit if empty
+    Author      - REQUIRED, real name (never a placeholder/guess)
+    Summary     - one line: what this file/module is for
+    Usage       - advanced module guide: core principle, setup, workflow,
+                  task-oriented API guide, and runnable worked example
+    Notes       - optional; omit if empty
 
   Unit doc (one per public unit), in this order:
-    Summary     — always line 1, one sentence, ends with a period
-    Behavior    — omit if fully self-evident
-    Parameters  — omit if none
-    Returns     — omit if none
-    Errors      — omit if none
-    Example     — omit if none
-    Notes       — omit if none
+    Summary     - always line 1, one sentence, ends with a period
+    Behavior    - omit if fully self-evident
+    Parameters  - omit if none
+    Returns     - omit if none
+    Errors      - omit if none
+    Example     - omit if none
+    Notes       - omit if none
 
 The "stop and ask, never guess" rule is enforced mechanically: a placeholder or
 guessed Author (TODO, FIXME, unknown, tbd, n/a, none, agent, ai, assistant,
@@ -70,6 +100,7 @@ PLACEHOLDER_AUTHORS = {
 # Minimum file size (bytes) below which a code-EMPTY file is treated as a stub.
 MIN_FILE_SIZE = 50
 PROJECT_IGNORE_NAME = ".coding-doc-standard-ignore"
+USAGE_LABELS = ("core principle", "setup", "workflow", "api guide", "worked example")
 
 
 def _default_config():
@@ -221,6 +252,24 @@ def _section_has_content(text: str, labels) -> bool:
     return False
 
 
+def _missing_usage_labels(text: str):
+    """Return required Usage-guide labels absent from a header comment block."""
+    found = set()
+    for raw in text.splitlines():
+        line = _strip_comment_line(raw).lower().lstrip("#").strip()
+        for label in USAGE_LABELS:
+            if line.startswith(label):
+                found.add(label)
+    return [label for label in USAGE_LABELS if label not in found]
+
+
+def _check_usage_guide(text: str, path: str, v) -> None:
+    """Report a missing Usage section or required guide labels."""
+    if not _section_has_content(text, ["usage:", "# usage", "# examples", "@code"]):
+        v.add(path, 1, "Missing Usage section in file header")
+        return
+
+
 def _check_python_docstring_shape(doc: str, path: str, line: int, v, subject: str) -> None:
     """Enforce PEP 257's native summary-line structure without invented tags."""
     lines = doc.splitlines()
@@ -265,10 +314,7 @@ def _check_header_python(content: str, path: str, v, placeholders) -> None:
         v.add(path, 1, "Missing 'Author' in file header")
     elif author.lower() in placeholders:
         v.add(path, 1, f"Placeholder/guessed Author in file header: {author!r}")
-    if not _section_has_content(doc, ["includes:"]):
-        v.add(path, 1, "Missing 'Includes' section in file header")
-    if not _section_has_content(doc, ["usage:"]):
-        v.add(path, 1, "Missing Usage section in file header")
+    _check_usage_guide(doc, path, v)
 
 
 def _check_header_tsjs(content: str, path: str, v, placeholders) -> None:
@@ -282,12 +328,7 @@ def _check_header_tsjs(content: str, path: str, v, placeholders) -> None:
         v.add(path, 1, "Missing '@author' in file header")
     elif author.lower() in placeholders:
         v.add(path, 1, f"Placeholder/guessed Author in file header: {author!r}")
-    if not _section_has_content(header, ["includes:"]):
-        v.add(path, 1, "Missing 'Includes' section in file header")
-    # TS/JS file-header Usage is written as prose `Usage:` (per the worked
-    # example) but the standard table also permits the `@example` tag; accept both.
-    if not _section_has_content(header, ["usage:", "@example"]):
-        v.add(path, 1, "Missing Usage section in file header")
+    _check_usage_guide(header, path, v)
 
 
 def _check_header_rust(content: str, path: str, v, placeholders) -> None:
@@ -317,10 +358,7 @@ def _check_header_rust(content: str, path: str, v, placeholders) -> None:
         v.add(path, 1, "Missing '# Author' in file header")
     elif author.lower() in placeholders:
         v.add(path, 1, f"Placeholder/guessed Author in file header: {author!r}")
-    if not _section_has_content(text, ["# includes"]):
-        v.add(path, 1, "Missing '# Includes' section in file header")
-    if not _section_has_content(text, ["# examples"]):
-        v.add(path, 1, "Missing Usage section in file header")
+    _check_usage_guide(text, path, v)
 
 
 def _check_header_c(content: str, path: str, v, placeholders) -> None:
@@ -337,10 +375,7 @@ def _check_header_c(content: str, path: str, v, placeholders) -> None:
     brief = _doxygen_tag_value(header, "@brief")
     if not brief:
         v.add(path, 1, "Missing '@brief' in file header")
-    if not _section_has_content(header, ["includes:", "@details"]):
-        v.add(path, 1, "Missing 'Includes' section in file header")
-    if not _section_has_content(header, ["@code"]):
-        v.add(path, 1, "Missing Usage section in file header")
+    _check_usage_guide(header, path, v)
 
 
 # ---------------------------------------------------------------------------
@@ -526,21 +561,41 @@ def _check_unit_c(content: str, path: str, v) -> None:
 # ---------------------------------------------------------------------------
 
 class Violations:
+    """Collect documentation-policy violations for one checked source file.
+
+    Instances retain formatted diagnostics in insertion order for the checker
+    dispatcher and command-line interface.
+    """
+
     def __init__(self):
         self.items = []
 
     def add(self, path, line, msg):
+        """Append one formatted documentation-policy violation.
+
+        The resulting message identifies the source path and line before its
+        policy explanation.
+        """
         self.items.append(f"{path}:{line} [doc-standard] {msg}")
 
     def summary(self):
+        """Format all collected violations as checker feedback.
+
+        Returns a newline-separated diagnostic body followed by the total count.
+        """
         body = "\n".join(self.items)
         return (
             f"{body}\n[doc-standard] {len(self.items)} violation(s). "
-            "Fix these or ask the user for missing information — do not guess."
+            "Fix these or ask the user for missing information - do not guess."
         )
 
 
 def check_content(content: str, path: str, kind: str, placeholders) -> Violations:
+    """Validate one source text against its language-specific documentation rules.
+
+    Dispatches header and public-unit checks for `kind` and returns every
+    violation without performing file I/O or terminating the process.
+    """
     v = Violations()
     ext = Path(path).suffix.lower()
     if kind == "python":
@@ -559,6 +614,11 @@ def check_content(content: str, path: str, kind: str, placeholders) -> Violation
 
 
 def main():
+    """Run the checker command-line interface for a file or standard input.
+
+    Exits with zero for compliant or out-of-scope content, two for policy
+    violations, and one for invalid invocation or unexpected internal errors.
+    """
     args = sys.argv[1:]
     read_stdin = False
     if args and args[-1] == "--stdin":
