@@ -36,6 +36,11 @@ path/to/file.py:10 [doc-standard] Missing unit doc for public unit 'foo'
 ```
 coding-doc-standard/
 ├── package.json
+├── SKILL.md               # general documentation contract
+├── c-cpp.md               # C/C++ reference
+├── python.md               # Python reference
+├── typescript-javascript.md # TypeScript/JavaScript reference
+├── rust.md                 # Rust reference
 ├── register-hooks.mjs      # cordis plugin: wires the CC hooks bridge to this config
 ├── hooks.json              # the PreToolUse hook definition (matcher: write|edit)
 ├── run-check.sh            # stdin wrapper: extracts tool_input.file_path, runs the checker
@@ -48,10 +53,10 @@ coding-doc-standard/
 └── README.md
 ```
 
-The standard itself (the human-facing spec, language mappings, worked examples,
-and the reviewer checklist) also lives as a **skill** at
-`~/.dsh/skills/coding-doc-standard/SKILL.md` — load it before writing or
-reviewing code in these languages.
+The standard is installed as a **skill** at
+`~/.dsh/skills/coding-doc-standard/`. `SKILL.md` is the general enforcer and
+links to concise C/C++, Python, TypeScript/JavaScript, and Rust references.
+Load only the reference for the language being written or reviewed.
 
 ---
 
