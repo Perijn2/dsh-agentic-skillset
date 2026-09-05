@@ -14,19 +14,18 @@ When installed, the harness runs a `PreToolUse` hook on **every `write` and
 `edit` tool call**. The hook validates the *pending content*, before the tool
 changes the target file:
 
-- **File / module header** must exist with `Author`, `Summary`, `Includes`, `Usage`.
-- **Author** must be a real, user-confirmed name — never a guess or placeholder.
+- **File / module header** must exist with `Author`, `Summary`, and an advanced `Usage` guide.
+- **Author** must be a real, user-confirmed name - never a guess or placeholder.
 - **Unit doc** must exist on every public unit (function, class, type, etc.).
 
 A non-compliant file is **BLOCKED** (the tool call is rejected) with the
 specific violations printed to stderr, so the agent must either fix the docs or
-**ask the user for the missing information** — it may never guess.
+**ask the user for the missing information** - it may never guess.
 
 ```
 path/to/file.py:1 [doc-standard] Missing 'Author' in file header
-path/to/file.py:1 [doc-standard] Missing 'Includes' section in file header
 path/to/file.py:10 [doc-standard] Missing unit doc for public unit 'foo'
-[doc-standard] 3 violation(s). Fix these or ask the user for missing information — do not guess.
+[doc-standard] 3 violation(s). Fix these or ask the user for missing information - do not guess.
 ```
 
 ---
@@ -35,22 +34,22 @@ path/to/file.py:10 [doc-standard] Missing unit doc for public unit 'foo'
 
 ```
 coding-doc-standard/
-├── package.json
-├── SKILL.md               # general documentation contract
-├── c-cpp.md               # C/C++ reference
-├── python.md               # Python reference
-├── typescript-javascript.md # TypeScript/JavaScript reference
-├── rust.md                 # Rust reference
-├── register-hooks.mjs      # cordis plugin: wires the CC hooks bridge to this config
-├── hooks.json              # the PreToolUse hook definition (matcher: write|edit)
-├── run-check.sh            # stdin wrapper: extracts tool_input.file_path, runs the checker
-├── src/
-│   └── checker.py          # the content-aware checker (stdlib-only Python)
-├── scripts/
-│   ├── test.mjs            # self-contained test matrix
-│   ├── install.mjs         # installs the plugin into the harness cordis config
-│   └── yaml-lite.mjs       # dependency-free YAML handling for the patch layer
-└── README.md
++-- package.json
++-- SKILL.md               # general documentation contract
++-- c-cpp.md               # C/C++ reference
++-- python.md               # Python reference
++-- typescript-javascript.md # TypeScript/JavaScript reference
++-- rust.md                 # Rust reference
++-- register-hooks.mjs      # cordis plugin: wires the CC hooks bridge to this config
++-- hooks.json              # the PreToolUse hook definition (matcher: write|edit)
++-- run-check.sh            # stdin wrapper: extracts tool_input.file_path, runs the checker
++-- src/
+|   +-- checker.py          # the content-aware checker (stdlib-only Python)
++-- scripts/
+|   +-- test.mjs            # self-contained test matrix
+|   +-- install.mjs         # installs the plugin into the harness cordis config
+|   +-- yaml-lite.mjs       # dependency-free YAML handling for the patch layer
++-- README.md
 ```
 
 The standard is installed as a **skill** at
@@ -83,25 +82,28 @@ the orchestrator** with a precise list of the missing fields.
 ## The recurring style (same across all languages)
 
 Two document shapes, each with **fixed section words**. The words never change
-across languages — only the comment syntax does.
+across languages - only the comment syntax does.
 
 ### File / module header (one per file)
 
-1. **Author** — who wrote the file. Required. Never invented.
-2. **Summary** — one line: what this file/module is for.
-3. **Includes** — each public unit the file exposes, one line each.
-4. **Usage** — how to use the API, with a runnable example.
-5. **Notes** *(optional)* — omit if empty.
+1. **Author** - who wrote the file. Required. Never invented.
+2. **Summary** - one line: what this file/module is for.
+3. **Usage** - an advanced module guide covering the core principle, setup,
+   workflow, task-oriented API guide, and runnable worked example.
+4. **Notes** *(optional)* - omit if empty.
+
+Do not use an `Includes` field. It duplicates declaration-level documentation
+and becomes stale.
 
 ### Unit doc (one per public unit)
 
-1. **Summary** — always line 1, one sentence, ends with a period.
-2. **Behavior** — omit if fully self-evident.
-3. **Parameters** — omit if none.
-4. **Returns** — omit if none.
-5. **Errors** — omit if none.
-6. **Example** — omit if none.
-7. **Notes** — omit if none.
+1. **Summary** - always line 1, one sentence, ends with a period.
+2. **Behavior** - omit if fully self-evident.
+3. **Parameters** - omit if none.
+4. **Returns** - omit if none.
+5. **Errors** - omit if none.
+6. **Example** - omit if none.
+7. **Notes** - omit if none.
 
 ### Language mappings
 
@@ -109,8 +111,7 @@ across languages — only the comment syntax does.
 |---|---|---|---|---|
 | Author | `@author` | `Author:` | `@author` | `# Author` |
 | Summary | `@brief` | docstring line 1 | `@module` first line | first `//!` line |
-| Includes | `@details` list | `Includes:` | `@remarks` list | `# Includes` |
-| Usage | `@code` | `Usage:` | `@example` | `# Examples` |
+| Usage | `Usage:` with `@code` | `Usage:` | `Usage:` in prose or `@remarks` | `# Usage` |
 | Notes | `@note` | `Notes:` | `@remarks` | `# Notes` |
 
 See `~/.dsh/skills/coding-doc-standard/SKILL.md` for the full worked examples.
@@ -161,7 +162,7 @@ To uninstall, remove the `coding-doc-standard` row from the cordis patch layer
 
 ## Settings
 
-In **Settings → Plugins → coding-doc-standard**, the first settings page offers
+In **Settings -> Plugins -> coding-doc-standard**, the first settings page offers
 an enforcement switch plus individual language switches for Python,
 TypeScript/JavaScript, Rust, and C/C++. Changes are written atomically to
 `config.json`; the checker loads that policy for every hook invocation, so the
@@ -177,10 +178,10 @@ next write/edit reflects the change without restarting the harness.
    as its `configPath`.
 3. The bridge registers a `tools/pre-execute` listener for the `PreToolUse`
    events declared in `hooks.json` (matcher `write|edit`).
-4. On each `write`/`edit` call, the harness invokes the configured command —
-   `run-check.sh` — with the tool payload on stdin.
+4. On each `write`/`edit` call, the harness invokes the configured command -
+   `run-check.sh` - with the tool payload on stdin.
 5. `run-check.sh` takes `tool_input.content` for writes, or applies the exact
-   `old_string` → `new_string` edit in memory. It pipes that candidate to
+   `old_string` -> `new_string` edit in memory. It pipes that candidate to
    `checker.py`; the target is never modified merely to validate it.
 6. The checker exits `2` (block) with violations on stderr for a non-compliant
    file, or `0` (allow) for a compliant / out-of-scope file.
@@ -194,7 +195,7 @@ env var), so it works whether or not the bridge is a declared dependency.
 ## Tests
 
 ```bash
-npm test        # runs scripts/test.mjs — the checker's self-contained matrix
+npm test        # runs scripts/test.mjs - the checker's self-contained matrix
 ```
 
 The matrix covers the compliant and violating cases for Python, TypeScript, and

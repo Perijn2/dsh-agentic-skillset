@@ -34,11 +34,11 @@ Ask exactly for the missing field:
 
 | Missing item | Ask the user |
 |---|---|
-| Author | “Who is the author of this file/module? I will not guess a name.” |
-| Behavior unclear or unimplemented | “What is the intended behavior of `<unit>`? The current code does not define it.” |
-| API contract not derivable from code | “What are the exact parameters, return value, and error cases for `<unit>`?” |
-| Usage example not derivable from real code | “What is the intended call pattern for `<unit>` so I can write a correct example?” |
-| Module purpose or public units unclear | “What is this file for, and which public units should the header list?” |
+| Author | "Who is the author of this file/module? I will not guess a name." |
+| Behavior unclear or unimplemented | "What is the intended behavior of `<unit>`? The current code does not define it." |
+| API contract not derivable from code | "What are the exact parameters, return value, and error cases for `<unit>`?" |
+| Usage guide not derivable from real code | "What are this module's core principle, setup and lifecycle, public API, and intended call patterns so I can write a correct Usage guide?" |
+| Module purpose or public API unclear | "What is this file for, and what public API does it expose?" |
 
 Use `ask_user_question` when available. A subagent without it returns the
 precise missing fields to its orchestrator. If placeholders are explicitly
@@ -65,20 +65,33 @@ Use the same fixed section words in every language; only comment syntax varies.
 
 Every file begins with one header, in this order:
 
-1. **Author** — required; never invented.
-2. **Summary** — one sentence describing the module.
-3. **Includes** — each public function, class, type, or constant with a
-   one-clause description.
-4. **Usage** — import/require/include plus a minimal worked primary-call
-   example.
-5. **Notes** *(optional)* — omit when empty.
+1. **Author** - required; never invented.
+2. **Summary** - one sentence describing the module.
+3. **Usage** - an advanced, code-derived guide to using the complete module,
+   not a terse import line or export inventory. In this order, cover:
+   - **Core principle** - the design model and responsibility the module owns.
+   - **Setup** - the real import, require, or include plus required construction,
+     configuration, or initialization.
+   - **Workflow** - the normal lifecycle or call sequence, including ordering,
+     state transitions, side effects, and cleanup when applicable.
+   - **API guide** - every public entry point grouped by task; explain what it
+     does, when to choose it, and how its result is used without duplicating
+     declaration-level contracts.
+   - **Worked example** - a realistic, runnable end-to-end primary workflow
+     that handles meaningful results or failures.
+   Omit only a genuinely inapplicable subpart; keep the guide proportional to
+   the public surface but complete enough for a new caller to use it correctly.
+4. **Notes** *(optional)* - omit when empty.
+
+Do **not** use an `Includes` field. It duplicates declarations and becomes
+stale; the task-oriented Usage API guide replaces it.
 
 ### Public-unit documentation
 
 Attach documentation to every public function, method, class, struct, trait,
 enum, or exported constant in this order:
 
-1. **Summary** — first content line; one sentence ending in a period.
+1. **Summary** - first content line; one sentence ending in a period.
 2. **Behavior** *(when not self-evident)*.
 3. **Parameters**.
 4. **Returns**.
@@ -97,7 +110,7 @@ Documentation is prose for people first.
 - File headers and public-unit docs use multiline native syntax, even for a
   short Summary.
 - Place the Summary first, followed by exactly one blank documentation line
-  before Behavior or the first populated section.
+  before Usage, Behavior, or the first populated section.
 - Use exactly one blank documentation line between logical sections, tag
   groups, or heading groups; keep entries within one group together.
 - Keep tags and headings on their own lines. Never place `@brief`, `@param`,
@@ -112,14 +125,19 @@ Documentation is prose for people first.
 Report missing required docs or fabricated content as **blockers**, missing
 optional-but-expected content as **major**, and style deviations as **minor**.
 
-1. Does every file have Author, Summary, Includes, and Usage?
-2. Is the author real and user-confirmed, and is Usage runnable?
-3. Does every public unit have an accurate Summary and applicable contract docs?
-4. Are empty sections omitted and fixed section words used?
-5. Do docs match current behavior?
-6. Are required docs multiline with one blank documentation line at section
+1. Does every file have Author, Summary, and a complete Usage guide, with no
+   Includes field?
+2. Is the author real and user-confirmed?
+3. Does Usage cover the core principle, setup, workflow, task-oriented public
+   API, and a runnable end-to-end example wherever each applies?
+4. Can a new caller use every public capability correctly from Usage without it
+   duplicating the declaration-level API reference?
+5. Does every public unit have an accurate Summary and applicable contract docs?
+6. Are empty sections omitted and fixed section words used?
+7. Do docs match current behavior?
+8. Are required docs multiline with one blank documentation line at section
    boundaries?
-7. Was the applicable language reference loaded and followed?
+9. Was the applicable language reference loaded and followed?
 
-If information is missing rather than wrong, report **“ask the author/user”**
+If information is missing rather than wrong, report **"ask the author/user"**
 instead of proposing invented text.

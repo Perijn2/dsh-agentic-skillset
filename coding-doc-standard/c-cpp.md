@@ -5,8 +5,12 @@ Load this only for C or C++. Apply `SKILL.md` first.
 ## Headers and public APIs
 
 Use expanded `/** ... */` Doxygen blocks. At the top of each file, place
-`@file <name>` on its own line, then the shared Author, Summary, Includes, and
-Usage fields. Public declarations need a non-empty `@brief`.
+`@file <name>` on its own line, then the shared Author, Summary, and Usage
+fields. Usage must use the shared **Core principle**, **Setup**, **Workflow**,
+**API guide**, and **Worked example** labels wherever they apply; put the
+runnable example in `@code` / `@endcode`. Do not add an Includes list or a
+surrogate `@details` API inventory. Public declarations need a non-empty
+`@brief`.
 
 Document every named parameter exactly once with `@param[in]`, `@param[out]`,
 or `@param[in,out]`. Non-`void` APIs need an accurate `@return` or `@retval`.

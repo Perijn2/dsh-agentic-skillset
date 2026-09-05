@@ -5,9 +5,11 @@ Load this only for TypeScript or JavaScript. Apply `SKILL.md` first.
 ## Headers and public units
 
 Use an expanded leading `/** ... */` module block above the first export, with
-`@module <name>` on its own line and the shared Author, Summary, Includes, and
-Usage fields. Use expanded `/** ... */` blocks directly above exported
-declarations.
+`@module <name>` on its own line and the shared Author, Summary, and Usage
+fields. Put the Usage guide in prose or one `@remarks` block, with **Core
+principle**, **Setup**, **Workflow**, **API guide**, and **Worked example**
+labels wherever they apply. Do not add an Includes inventory. Use expanded
+`/** ... */` blocks directly above exported declarations.
 
 Every exported parameter needs `@param`. Exported non-`void` TypeScript
 functions need `@returns`; exported generators need `@yields`. Document only

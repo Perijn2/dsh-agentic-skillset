@@ -5,7 +5,11 @@ Load this only for Python. Apply `SKILL.md` first.
 ## Headers and public units
 
 Use a multiline module docstring as the file's first statement. Use `Author:`,
-`Summary:`, `Includes:`, `Usage:`, and optional `Notes:` for the shared fields.
+`Summary:`, `Usage:`, and optional `Notes:` for the shared fields. `Usage:` must
+contain indented **Core principle**, **Setup**, **Workflow**, **API guide**, and
+**Worked example** content wherever each applies. Do not add an `Includes:`
+list; explain public APIs by task in Usage and retain declaration-level
+contracts on public-unit docstrings.
 
 Use a multiline triple-quoted docstring as the first statement of each public
 function or class body. Follow PEP 257: the first line is a one-sentence
