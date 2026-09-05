@@ -1,4 +1,18 @@
 #!/usr/bin/env node
+/**
+ * @module install
+ *
+ * @author Perijn Huijser
+ *
+ * Install the coding-doc-standard package into the harness configuration.
+ *
+ * @remarks
+ * Includes:
+ *   - the hook plugin registration and machine-wide skill installation.
+ *
+ * Usage:
+ *   node scripts/install.mjs [--config <cordis.patch.yml path>] [--dry-run]
+ */
 // Install coding-doc-standard into the harness cordis composition.
 //
 // Adds (or updates) a single cordis plugin row whose `name` is this package's
@@ -30,6 +44,12 @@ const HOOKS_JSON = join(pkgRoot, 'hooks.json')
 const CHECKER = join(pkgRoot, 'src', 'checker.py')
 const WRAPPER = join(pkgRoot, 'run-check.sh')
 const SKILL_MD = join(pkgRoot, 'SKILL.md')
+const SKILL_REFERENCES = [
+  'c-cpp.md',
+  'python.md',
+  'typescript-javascript.md',
+  'rust.md',
+].map((name) => join(pkgRoot, name))
 const PACKAGE_NAME = 'coding-doc-standard'
 
 // --- args -------------------------------------------------------------------
@@ -48,7 +68,7 @@ const configPath = argValue('--config') ||
   join(homedir(), '.dsh', 'cordis.patch.yml')
 
 // --- validate package -------------------------------------------------------
-const required = [ENTRY, HOOKS_JSON, CHECKER, WRAPPER, SKILL_MD]
+const required = [ENTRY, HOOKS_JSON, CHECKER, WRAPPER, SKILL_MD, ...SKILL_REFERENCES]
 const missing = required.filter((p) => !existsSync(p))
 if (missing.length) {
   console.error(`coding-doc-standard: package is incomplete — missing:\n  ${missing.join('\n  ')}`)
@@ -116,6 +136,7 @@ if (insertOp) {
 const skillName = 'coding-doc-standard'
 const skillDir = join(homedir(), '.dsh', 'skills', skillName)
 const skillTarget = join(skillDir, 'SKILL.md')
+const skillReferenceTargets = SKILL_REFERENCES.map((source) => join(skillDir, source.split('/').at(-1)))
 const packageLinks = [
   join(homedir(), '.dsh', 'node_modules', PACKAGE_NAME),
   join(homedir(), '.dsh', 'profiles', 'web', 'node_modules', PACKAGE_NAME),
@@ -125,13 +146,22 @@ if (dryRun) {
   console.log('--- dry run: no files written. Resulting patch layer: ---')
   console.log(next)
   console.log(`coding-doc-standard: would install skill  ${skillTarget}`)
+  for (const target of skillReferenceTargets) {
+    console.log(`coding-doc-standard: would install reference ${target}`)
+  }
   for (const link of packageLinks) console.log(`coding-doc-standard: would link package ${link} -> ${pkgRoot}`)
   process.exit(0)
 }
 
 mkdirSync(skillDir, { recursive: true })
 copyFileSync(SKILL_MD, skillTarget)
+for (let index = 0; index < SKILL_REFERENCES.length; index += 1) {
+  copyFileSync(SKILL_REFERENCES[index], skillReferenceTargets[index])
+}
 console.log(`coding-doc-standard: installed skill    ${skillTarget}`)
+for (const target of skillReferenceTargets) {
+  console.log(`coding-doc-standard: installed reference ${target}`)
+}
 
 for (const link of packageLinks) {
   mkdirSync(join(link, '..'), { recursive: true })

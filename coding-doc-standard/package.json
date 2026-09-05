@@ -15,6 +15,10 @@
   },
   "files": [
     "SKILL.md",
+    "c-cpp.md",
+    "python.md",
+    "typescript-javascript.md",
+    "rust.md",
     "register-hooks.mjs",
     "src/checker.py",
     "hooks.json",
