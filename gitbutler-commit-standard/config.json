@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "commandGuard": true,
+  "commitlint": true,
+  "profile": "conventional",
+  "repositoryProfileMode": "disabled",
+  "repositoryExclusions": []
+}
