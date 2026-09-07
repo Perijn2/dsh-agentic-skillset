@@ -27,16 +27,20 @@ blockers; one-line docs or missing summary/detail separation are minor.
 ## Formatting
 
 Format every new or edited Python script and module with the skill-bundled,
-pinned `black==25.12.0` before considering work complete. Do not hand-format as
-a substitute for running Black. Run Black on every changed `.py` file, then run
-its non-mutating check:
+pinned `ruff==0.16.6` formatter before considering work complete. Do not
+hand-format as a substitute for running Ruff. Run `ruff format` on every
+changed `.py` file, then run its non-mutating check:
 
 ```bash
-PYTHONPATH="${HOME}/.dsh/node_modules/coding-doc-standard/.tools/black-25.12.0" \
-    python3 -m black path/to/script.py
-PYTHONPATH="${HOME}/.dsh/node_modules/coding-doc-standard/.tools/black-25.12.0" \
-    python3 -m black --check path/to/script.py
+RUFF="${HOME}/.dsh/node_modules/coding-doc-standard/.tools/ruff-0.16.6/bin/ruff"
+
+"${RUFF}" format path/to/script.py
+"${RUFF}" format --check path/to/script.py
 ```
 
+Invoke the provisioned binary directly rather than `python -m ruff`: Ruff
+resolves its own executable through the active interpreter's script directory,
+where a host-wide Ruff would shadow the pin.
+
 The PreToolUse hook blocks a Python write or edit whose pending content fails
-that exact Black check.
+that exact `ruff format --check`.
