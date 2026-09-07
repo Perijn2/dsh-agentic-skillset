@@ -12,9 +12,9 @@ set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHECKER="${HERE}/src/checker.py"
 
-# The checker can run on the Python available in Git Bash. Black must use the
-# CPython runtime that the Windows installer provisions, which may be visible
-# only through `cmd.exe` and the Windows Python launcher.
+# The checker can run on the Python available in Git Bash. The pinned Ruff
+# formatter is a native binary provisioned under the package root, so it needs
+# no interpreter lookup of its own.
 if command -v python3 >/dev/null 2>&1; then
     CHECKER_PYTHON=(python3)
 elif command -v python >/dev/null 2>&1; then
@@ -22,14 +22,6 @@ elif command -v python >/dev/null 2>&1; then
 else
     echo "[doc-standard] Python 3 is required to validate pending writes." >&2
     exit 1
-fi
-
-if command -v py >/dev/null 2>&1 && py -3 -c 'import sys' >/dev/null 2>&1; then
-    BLACK_PYTHON=(py -3)
-elif command -v cmd.exe >/dev/null 2>&1 && cmd.exe /c py -3 --version >/dev/null 2>&1; then
-    BLACK_PYTHON=(cmd.exe /c py -3)
-else
-    BLACK_PYTHON=("${CHECKER_PYTHON[@]}")
 fi
 
 # Resolve the config path: prefer the explicit env var, then the package-local
@@ -104,26 +96,31 @@ if [ -z "${file_path}" ] || [ "${#CANDIDATE_FIELDS[@]}" -lt 2 ]; then
     exit 2
 fi
 
-# Black receives the in-memory candidate, not the stale on-disk file. The
-# installer provisions this exact version under the package root so a host-wide
-# Black installation cannot make enforcement depend on an unpinned version.
+# Ruff receives the in-memory candidate, not the stale on-disk file. The hook
+# runs the provisioned binary directly: Ruff's own lookup checks the active
+# interpreter's script directory first, so a host-wide Ruff would otherwise win
+# over the pin and make enforcement depend on an unpinned version.
 if [[ "${file_path}" == *.py ]]; then
-    BLACK_VERSION="25.12.0"
-    BLACK_HOME="${HERE}/.tools/black-${BLACK_VERSION}"
-    if [ ! -d "${BLACK_HOME}/black" ]; then
-        echo "[doc-standard] Pinned Black ${BLACK_VERSION} is unavailable at ${BLACK_HOME}. Run node scripts/install.mjs to provision it." >&2
+    RUFF_VERSION="0.16.6"
+    RUFF_HOME="${HERE}/.tools/ruff-${RUFF_VERSION}"
+    RUFF_BIN="${RUFF_HOME}/bin/ruff"
+    if [ ! -x "${RUFF_BIN}" ] && [ -x "${RUFF_BIN}.exe" ]; then
+        RUFF_BIN="${RUFF_BIN}.exe"
+    fi
+    if [ ! -x "${RUFF_BIN}" ]; then
+        echo "[doc-standard] Pinned Ruff ${RUFF_VERSION} is unavailable at ${RUFF_HOME}. Run node scripts/install.mjs to provision it." >&2
         exit 1
     fi
 
     "${CHECKER_PYTHON[@]}" -c 'import base64, sys; sys.stdout.buffer.write(base64.b64decode(sys.argv[1]))' "${candidate_b64}" |
-        PYTHONPATH="${BLACK_HOME}${PYTHONPATH:+:${PYTHONPATH}}" "${BLACK_PYTHON[@]}" -m black --check --stdin-filename "${file_path}" -
-    black_status="${PIPESTATUS[1]}"
-    if [ "${black_status}" -eq 1 ]; then
-        echo "[doc-standard] Python code must be formatted with Black ${BLACK_VERSION}." >&2
+        "${RUFF_BIN}" format --check --stdin-filename "${file_path}" -
+    ruff_status="${PIPESTATUS[1]}"
+    if [ "${ruff_status}" -eq 1 ]; then
+        echo "[doc-standard] Python code must be formatted with Ruff ${RUFF_VERSION}." >&2
         exit 2
     fi
-    if [ "${black_status}" -ne 0 ]; then
-        echo "[doc-standard] Pinned Black ${BLACK_VERSION} failed (exit ${black_status})." >&2
+    if [ "${ruff_status}" -ne 0 ]; then
+        echo "[doc-standard] Pinned Ruff ${RUFF_VERSION} failed (exit ${ruff_status})." >&2
         exit 1
     fi
 fi

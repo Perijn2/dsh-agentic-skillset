@@ -52,42 +52,43 @@ const SKILL_REFERENCES = [
   'rust.md',
 ].map((name) => join(pkgRoot, name))
 const PACKAGE_NAME = 'coding-doc-standard'
-const BLACK_VERSION = '25.12.0'
-const BLACK_TARGET = join(pkgRoot, '.tools', `black-${BLACK_VERSION}`)
+const RUFF_VERSION = '0.16.6'
+const RUFF_TARGET = join(pkgRoot, '.tools', `ruff-${RUFF_VERSION}`)
+const RUFF_BIN = join(RUFF_TARGET, 'bin', process.platform === 'win32' ? 'ruff.exe' : 'ruff')
 const PYTHON = process.platform === 'win32' ? ['py', '-3'] : ['python3']
 
 function runPython(args, options) {
   return execFileSync(PYTHON[0], [...PYTHON.slice(1), ...args], options)
 }
 
-function hasPinnedBlack() {
+// The pinned binary is queried directly. `python -m ruff` resolves its binary
+// through the active interpreter's script directory, where a host-wide Ruff
+// would shadow this pin.
+function hasPinnedRuff() {
   try {
-    runPython(['-c',
-      `import black; assert black.__version__ == ${JSON.stringify(BLACK_VERSION)}`,
-    ], {
-      stdio: 'pipe',
-      env: { ...process.env, PYTHONPATH: BLACK_TARGET },
-    })
-    return true
+    const output = execFileSync(RUFF_BIN, ['--version'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).toString()
+    return output.includes(RUFF_VERSION)
   } catch {
     return false
   }
 }
 
-function provisionPinnedBlack() {
-  if (hasPinnedBlack()) {
-    console.log(`coding-doc-standard: pinned Black ${BLACK_VERSION} is ready`)
+function provisionPinnedRuff() {
+  if (hasPinnedRuff()) {
+    console.log(`coding-doc-standard: pinned Ruff ${RUFF_VERSION} is ready`)
     return
   }
 
-  console.log(`coding-doc-standard: installing pinned Black ${BLACK_VERSION}`)
-  mkdirSync(BLACK_TARGET, { recursive: true })
+  console.log(`coding-doc-standard: installing pinned Ruff ${RUFF_VERSION}`)
+  mkdirSync(RUFF_TARGET, { recursive: true })
   runPython([
-    '-m', 'pip', 'install', '--upgrade', '--target', BLACK_TARGET,
-    `black==${BLACK_VERSION}`,
+    '-m', 'pip', 'install', '--upgrade', '--target', RUFF_TARGET,
+    `ruff==${RUFF_VERSION}`,
   ], { stdio: 'inherit' })
-  if (!hasPinnedBlack()) {
-    throw new Error(`coding-doc-standard: failed to provision Black ${BLACK_VERSION}`)
+  if (!hasPinnedRuff()) {
+    throw new Error(`coding-doc-standard: failed to provision Ruff ${RUFF_VERSION}`)
   }
 }
 
@@ -189,11 +190,11 @@ if (dryRun) {
     console.log(`coding-doc-standard: would install reference ${target}`)
   }
   for (const link of packageLinks) console.log(`coding-doc-standard: would link package ${link} -> ${pkgRoot}`)
-  console.log(`coding-doc-standard: would provision Black ${BLACK_VERSION}`)
+  console.log(`coding-doc-standard: would provision Ruff ${RUFF_VERSION}`)
   process.exit(0)
 }
 
-provisionPinnedBlack()
+provisionPinnedRuff()
 
 mkdirSync(skillDir, { recursive: true })
 copyFileSync(SKILL_MD, skillTarget)
