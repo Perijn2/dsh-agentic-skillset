@@ -35,7 +35,7 @@ import {
 } from 'node:fs'
 import { homedir } from 'node:os'
 import { fileURLToPath } from 'node:url'
-import { join, resolve } from 'node:path'
+import { basename, join, resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { formatRows, parseRows, splitPatch } from './yaml-lite.mjs'
 
@@ -54,10 +54,15 @@ const SKILL_REFERENCES = [
 const PACKAGE_NAME = 'coding-doc-standard'
 const BLACK_VERSION = '25.12.0'
 const BLACK_TARGET = join(pkgRoot, '.tools', `black-${BLACK_VERSION}`)
+const PYTHON = process.platform === 'win32' ? ['py', '-3'] : ['python3']
+
+function runPython(args, options) {
+  return execFileSync(PYTHON[0], [...PYTHON.slice(1), ...args], options)
+}
 
 function hasPinnedBlack() {
   try {
-    execFileSync('python3', ['-c',
+    runPython(['-c',
       `import black; assert black.__version__ == ${JSON.stringify(BLACK_VERSION)}`,
     ], {
       stdio: 'pipe',
@@ -77,7 +82,7 @@ function provisionPinnedBlack() {
 
   console.log(`coding-doc-standard: installing pinned Black ${BLACK_VERSION}`)
   mkdirSync(BLACK_TARGET, { recursive: true })
-  execFileSync('python3', [
+  runPython([
     '-m', 'pip', 'install', '--upgrade', '--target', BLACK_TARGET,
     `black==${BLACK_VERSION}`,
   ], { stdio: 'inherit' })
@@ -170,7 +175,7 @@ if (insertOp) {
 const skillName = 'coding-doc-standard'
 const skillDir = join(homedir(), '.dsh', 'skills', skillName)
 const skillTarget = join(skillDir, 'SKILL.md')
-const skillReferenceTargets = SKILL_REFERENCES.map((source) => join(skillDir, source.split('/').at(-1)))
+const skillReferenceTargets = SKILL_REFERENCES.map((source) => join(skillDir, basename(source)))
 const packageLinks = [
   join(homedir(), '.dsh', 'node_modules', PACKAGE_NAME),
   join(homedir(), '.dsh', 'profiles', 'web', 'node_modules', PACKAGE_NAME),

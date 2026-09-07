@@ -12,6 +12,26 @@ set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CHECKER="${HERE}/src/checker.py"
 
+# The checker can run on the Python available in Git Bash. Black must use the
+# CPython runtime that the Windows installer provisions, which may be visible
+# only through `cmd.exe` and the Windows Python launcher.
+if command -v python3 >/dev/null 2>&1; then
+    CHECKER_PYTHON=(python3)
+elif command -v python >/dev/null 2>&1; then
+    CHECKER_PYTHON=(python)
+else
+    echo "[doc-standard] Python 3 is required to validate pending writes." >&2
+    exit 1
+fi
+
+if command -v py >/dev/null 2>&1 && py -3 -c 'import sys' >/dev/null 2>&1; then
+    BLACK_PYTHON=(py -3)
+elif command -v cmd.exe >/dev/null 2>&1 && cmd.exe /c py -3 --version >/dev/null 2>&1; then
+    BLACK_PYTHON=(cmd.exe /c py -3)
+else
+    BLACK_PYTHON=("${CHECKER_PYTHON[@]}")
+fi
+
 # Resolve the config path: prefer the explicit env var, then the package-local
 # config.json if it exists, else omit (checker falls back to built-in defaults).
 CONFIG_PATH=""
@@ -26,7 +46,7 @@ fi
 # nothing at all for a new file). The Python helper emits the path and a
 # base64-encoded candidate on separate lines; base64 preserves all bytes,
 # including trailing newlines, across Bash command substitution.
-candidate_output="$(python3 -c '
+candidate_output="$("${CHECKER_PYTHON[@]}" -c '
 import base64
 import json
 import os
@@ -95,8 +115,8 @@ if [[ "${file_path}" == *.py ]]; then
         exit 1
     fi
 
-    python3 -c 'import base64, sys; sys.stdout.buffer.write(base64.b64decode(sys.argv[1]))' "${candidate_b64}" |
-        PYTHONPATH="${BLACK_HOME}${PYTHONPATH:+:${PYTHONPATH}}" python3 -m black --check --stdin-filename "${file_path}" -
+    "${CHECKER_PYTHON[@]}" -c 'import base64, sys; sys.stdout.buffer.write(base64.b64decode(sys.argv[1]))' "${candidate_b64}" |
+        PYTHONPATH="${BLACK_HOME}${PYTHONPATH:+:${PYTHONPATH}}" "${BLACK_PYTHON[@]}" -m black --check --stdin-filename "${file_path}" -
     black_status="${PIPESTATUS[1]}"
     if [ "${black_status}" -eq 1 ]; then
         echo "[doc-standard] Python code must be formatted with Black ${BLACK_VERSION}." >&2
@@ -113,6 +133,6 @@ if [ -n "${CONFIG_PATH}" ]; then
     checker_args+=("${CONFIG_PATH}")
 fi
 checker_args+=("--stdin")
-python3 -c 'import base64, sys; sys.stdout.buffer.write(base64.b64decode(sys.argv[1]))' "${candidate_b64}" |
-    python3 "${checker_args[@]}"
+"${CHECKER_PYTHON[@]}" -c 'import base64, sys; sys.stdout.buffer.write(base64.b64decode(sys.argv[1]))' "${candidate_b64}" |
+    "${CHECKER_PYTHON[@]}" "${checker_args[@]}"
 exit "${PIPESTATUS[1]}"
