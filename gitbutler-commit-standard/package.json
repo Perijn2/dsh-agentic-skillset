@@ -17,6 +17,7 @@
     "README.md",
     "SKILL.md",
     "client.js",
+    "cordis.patch.yml",
     "config.json",
     "commitlint.config.cjs",
     "hooks.json",
@@ -28,6 +29,9 @@
     "src/"
   ],
   "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "inject": ["@deepseek-ai/dsh-client-runtime", "@deepseek-ai/dsh-client-ui-settings", "@deepseek-ai/dsh-client-ui-settings-plugins"]

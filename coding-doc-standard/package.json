@@ -19,6 +19,7 @@
     "python.md",
     "typescript-javascript.md",
     "rust.md",
+    "cordis.patch.yml",
     "register-hooks.mjs",
     "src/checker.py",
     "hooks.json",
@@ -30,6 +31,9 @@
     "client.js"
   ],
   "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "inject": [
